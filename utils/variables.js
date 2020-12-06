@@ -1,4 +1,5 @@
 const userSelect =
     '-password -dateCreated -__v -loginToken -tempEmail -tempEmailToken -resetPasswordToken -resetPasswordExpires';
 
-module.exports = { userSelect };
+const bjReviewSelect = '-dateCreated -__v';
+module.exports = { userSelect, bjReviewSelect };

@@ -7,6 +7,10 @@ const cors = require('cors');
 const users = require('./api/users');
 const auth = require('./api/auth');
 
+const bjBeers = require('./api/beerjournal/beers');
+const bjBreweries = require('./api/beerjournal/breweries');
+const bjReviews = require('./api/beerjournal/reviews');
+
 const PORT = process.env.PORT || 8080;
 const app = express();
 
@@ -20,6 +24,11 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/users', users);
 app.use('/auth', auth);
+
+// Beerjournal routes
+app.use('/beerjournal/beers', bjBeers);
+app.use('/beerjournal/breweries', bjBreweries);
+app.use('/beerjournal/reviews', bjReviews);
 
 // Listen the server
 app.listen(PORT, () => {
