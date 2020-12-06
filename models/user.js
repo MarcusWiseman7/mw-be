@@ -6,7 +6,10 @@ const UserSchema = new Schema(
     {
         password: { type: String, trim: true },
         email: { type: String, trim: true, unique: true },
+        altEmails: [{ type: String, trim: true, unique: true }],
         displayName: { type: String, trim: true, unique: true },
+        tempEmail: { type: String, trim: true },
+        tempEmailToken: { type: String },
         resetPasswordToken: { type: String },
         resetPasswordExpires: { type: Date },
         loginToken: { type: String },

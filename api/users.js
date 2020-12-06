@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/allUsers', async (req, res) => {
     try {
         const users = await User.find({}, userSelect);
-        if (!users) res.status(404).send({ statusCode: -1, message: 'Users not found' });
+        if (!users) res.status(404).send({ statusCode: -1, message: 'No users found' });
 
         res.status(200).send({ statusCode: 1, users });
     } catch (err) {
@@ -36,10 +36,10 @@ router.post('/addNewUser', async (req, res) => {
 
         const user = await new User(req.body);
         await user.save((err) => {
-            if (err) return res.status(400).send({ statusCode: -1, err });
+            if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err });
         });
-        console.log('New user added');
-        res.status(200).send({ statusCode: 1, user });
+
+        res.status(200).send({ statusCode: 1, message: 'New user added' });
     } catch (err) {
         res.status(400).send({ statusCode: -1, catchError: err });
     }
@@ -49,7 +49,7 @@ router.delete('/deleteUser/:id', async (req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);
         if (!user) return res.status(404).send({ statusCode: -1, message: 'User not found' });
-        res.status(200).send({ statusCode: 1, user });
+        res.status(200).send({ statusCode: 1, message: 'User has been deleted' });
     } catch (err) {
         res.status(400).send({ statusCode: -1, catchError: err });
     }
@@ -68,7 +68,7 @@ router.patch('/changePassword', async (req, res) => {
                 if (err) return res.status(400).send({ statusCode: -1, message: 'User save to DB error' });
             });
 
-            return res.status(200).send({ statusCode: 1, user });
+            return res.status(200).send({ statusCode: 1, message: 'Password has been changed' });
         }
 
         res.status(401).send({ statusCode: -1, message: 'Password does not match' });
@@ -77,7 +77,7 @@ router.patch('/changePassword', async (req, res) => {
     }
 });
 
-router.patch('/:id', async (req, res) => {
+router.patch('/updateUser/:id', async (req, res) => {
     const id = req.params.id;
     if (!ObjectId.isValid(id)) return res.status(404).send();
 
