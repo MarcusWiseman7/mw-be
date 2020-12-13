@@ -4,6 +4,7 @@ const nodemailer = require('nodemailer');
 const { mongoose } = require('../../db/mongoose');
 const { Beer } = require('../../models/beerjournal/beer');
 const { Brewery } = require('../../models/beerjournal/brewery');
+const { Review } = require('../../models/beerjournal/review');
 
 const router = express.Router();
 
@@ -69,6 +70,26 @@ router.get('/tempBeers', async (req, res) => {
     }
 });
 
+router.get('/topBeers', async (req, res) => {
+    try {
+        const top = await Beer.find({ tempBeer: false, averageRating: { $gt: 4 } })
+            .select(
+                '_id beerName brewery style degrees abv bi logo description averagePrice averageRating totalNumberOfRatings'
+            )
+            .populate('brewery');
+        if (!top) return res.status(404).send({ statusCode: -2, message: 'Error finding top beers' });
+
+        for (let i = top.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [top[i], top[j]] = [top[j], top[i]];
+        }
+
+        res.status(200).send({ topBeers: top.slice(0, 6) });
+    } catch (err) {
+        return res.status(400).send({ statusCode: -1, catchError: err });
+    }
+});
+
 // Retrieve all beers & breweries
 router.get('/allBeers', async (req, res) => {
     try {
@@ -78,10 +99,28 @@ router.get('/allBeers', async (req, res) => {
             )
             .populate('brewery');
         const breweries = await Brewery.find().select('-__v -sumOfAllBeerRatings');
+        const reviews = await Review.find().select('-__v').populate('reviewer');
 
-        if (!beers || !breweries) return res.status(404).send();
+        const top = await Beer.find({ tempBeer: false, averageRating: { $gt: 4 } })
+            .select(
+                '_id beerName brewery style degrees abv bi logo description averagePrice averageRating totalNumberOfRatings'
+            )
+            .populate('brewery');
 
-        res.status(200).send({ beers, breweries });
+        for (let i = top.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [top[i], top[j]] = [top[j], top[i]];
+        }
+
+        if (!beers || !breweries || !top) {
+            let err = '';
+            if (!beers) err += 'beers';
+            if (!breweries) err += 'breweries';
+            if (!top) err += 'top';
+            return res.status(404).send({ statusCode: -2, message: `DB find error: no ${err}` });
+        }
+
+        res.status(200).send({ beers, breweries, reviews, topBeers: top.slice(0, 6) });
     } catch (err) {
         return res.status(400).send(err);
     }
