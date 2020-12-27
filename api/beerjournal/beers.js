@@ -2,6 +2,7 @@ const express = require('express');
 const nodemailer = require('nodemailer');
 
 const { mongoose } = require('../../db/mongoose');
+const { bjBeerSelect } = require('../../utils/variables');
 const { Beer } = require('../../models/beerjournal/beer');
 const { Brewery } = require('../../models/beerjournal/brewery');
 const { Review } = require('../../models/beerjournal/review');
@@ -73,9 +74,7 @@ router.get('/tempBeers', async (req, res) => {
 router.get('/topBeers', async (req, res) => {
     try {
         const top = await Beer.find({ tempBeer: false, averageRating: { $gt: 4 } })
-            .select(
-                '_id beerName brewery style degrees abv bi logo description averagePrice averageRating totalNumberOfRatings'
-            )
+            .select(bjBeerSelect)
             .populate('brewery');
         if (!top) return res.status(404).send({ statusCode: -2, message: 'Error finding top beers' });
 

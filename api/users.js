@@ -19,7 +19,7 @@ router.get('/allUsers', async (req, res) => {
     }
 });
 
-router.get('/checkDB', async (req, res) => {
+router.post('/checkDB', async (req, res) => {
     try {
         const user = await User.findOne(req.body);
         if (user) return res.status(200).send({ statusCode: -1, message: 'This already exists' });

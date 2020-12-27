@@ -7,7 +7,6 @@ const reviewSchema = new mongoose.Schema(
         price: { type: Number },
         location: { type: String, trim: true },
         rating: { type: Number, required: true },
-        color: { type: Number, required: false },
         bitter: { type: Number, required: false },
         finish: { type: Number, required: false },
         notes: { type: String, trim: true },

@@ -1,5 +1,7 @@
-const userSelect =
-    '-password -dateCreated -__v -loginToken -tempEmail -tempEmailToken -resetPasswordToken -resetPasswordExpires';
+const userSelect = 'displayName email _id';
 
 const bjReviewSelect = '-dateCreated -__v';
-module.exports = { userSelect, bjReviewSelect };
+
+const bjBeerSelect = '_id beerName brewery style degrees abv bi logo description averageRating totalNumberOfRatings';
+
+module.exports = { userSelect, bjReviewSelect, bjBeerSelect };

@@ -1,6 +1,6 @@
 const express = require('express');
 
-const { bjReviewSelect } = require('../../utils/variables');
+const { userSelect } = require('../../utils/variables');
 const { mongoose } = require('../../db/mongoose');
 const { Review } = require('../../models/beerjournal/review');
 const { Beer } = require('../../models/beerjournal/beer');
@@ -22,46 +22,22 @@ const averageRound = (a, b, c) => {
 };
 
 // Create new review
-router.post('/', async (req, res) => {
+router.post('/addReview', async (req, res) => {
     try {
-        const body = req.body;
-        // const file = req.files[0] ? req.files[0].path : null;
-
-        // if (file) {
-        //     await cloud.uploads({ file, folder: 'reviews' }).then((result) => {
-        //         body.pic = result.url;
-        //         body.picId = result.public_id;
-        //     });
-
-        //     if (body.pic && body.pic.length) {
-        //         fs.unlink(file, (err) => {
-        //             if (err) throw err;
-        //         });
-        //     } else {
-        //         return res.status(400).send();
-        //     }
-        // }
-
-        const review = await new Review(body);
+        const review = await new Review(req.body);
         await review.save((err) => {
-            if (err) return res.status(400).send(err);
+            if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving review' });
         });
 
         const beer = await Beer.findOne({ _id: review.beer }).populate({ path: 'brewery' });
-        if (!beer) return res.status(404).send();
+        if (!beer) return res.status(404).send({ statusCode: -1, message: 'Beer not found by id' });
 
         beer.sumOfAllRatings = +beer.sumOfAllRatings + +review.rating;
         beer.totalNumberOfRatings = +beer.totalNumberOfRatings + 1;
         beer.averageRating = averageRound(+beer.sumOfAllRatings, +beer.totalNumberOfRatings, 1);
 
-        if (review.price) {
-            beer.sumOfAllPrices = +beer.sumOfAllPrices + +review.price;
-            beer.totalNumberOfPrices = +beer.totalNumberOfPrices + 1;
-            beer.averagePrice = averageRound(+beer.sumOfAllPrices, +beer.totalNumberOfPrices, 0);
-        }
-
         await beer.save((err) => {
-            if (err) return res.status(400).send(err);
+            if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving beer' });
         });
 
         const user = await User.findOneAndUpdate(
@@ -69,13 +45,13 @@ router.post('/', async (req, res) => {
             { $push: { reviews: review._id } },
             { new: true }
         )
-            .select('_id name surname email darkMode avatar avatarId')
+            .select(userSelect)
             .populate(populateParams);
-        if (!user) return res.status(404).send();
+        if (!user) return res.status(404).send({ statusCode: -1, message: 'User not found by id' });
 
-        res.status(200).send({ user, beer });
+        res.status(200).send({ statusCode: 1, user, beer });
     } catch (err) {
-        return res.status(400).send(err);
+        return res.status(400).send({ statusCode: -1, catchError: err });
     }
 });
 
@@ -84,13 +60,13 @@ router.get('/:beerId', async (req, res) => {
     try {
         const reviews = await Review.find({ beer: req.params.beerId }).populate({
             path: 'reviewer',
-            select: '_id name avatar',
+            select: userSelect,
         });
-        if (!reviews) return res.status(404).send();
+        if (!reviews) return res.status(404).send({ statusCode: -1, message: 'Reviews not found by beer id' });
 
-        res.status(200).send(reviews);
+        res.status(200).send({ statusCode: 1, reviews });
     } catch (err) {
-        return res.status(400).send(err);
+        return res.status(400).send({ statusCode: -1, catchError: err });
     }
 });
 
@@ -105,7 +81,7 @@ router.delete('/:id/:userId', async (req, res) => {
             { $pull: { reviews: reviewId } },
             { new: true }
         )
-            .select('_id name surname email darkMode avatar avatarId')
+            .select(userSelect)
             .populate(populateParams);
         if (!user) return res.status(404).send();
 
@@ -136,7 +112,7 @@ router.delete('/:id/:userId', async (req, res) => {
 
         res.status(200).send({ user, beer });
     } catch (err) {
-        return res.status(400).send(err);
+        return res.status(400).send({ statusCode: -1, catchError: err });
     }
 });
 
