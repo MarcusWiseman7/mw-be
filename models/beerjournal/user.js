@@ -37,6 +37,7 @@ UserSchema.pre('save', function (next) {
     }
 });
 
-const User = mongoose.model('User', UserSchema);
+const bjDB = mongoose.connection.useDb('BJ');
+const bjUser = bjDB.model('User', UserSchema);
 
-module.exports = { User };
+module.exports = { bjUser };

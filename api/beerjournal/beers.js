@@ -6,6 +6,7 @@ const { bjBeerSelect, bjTempBeerSelect, bjReviewSelect, bjBrewerySelect } = requ
 const { Beer } = require('../../models/beerjournal/beer');
 const { Brewery } = require('../../models/beerjournal/brewery');
 const { Review } = require('../../models/beerjournal/review');
+const { bjUser } = require('../../models/beerjournal/user');
 
 const router = express.Router();
 
@@ -64,7 +65,7 @@ router.post('/', async (req, res) => {
 // Retrieve temp beers
 router.get('/tempBeers', async (req, res) => {
     try {
-        const tempBeers = await Beer.find({ tempBeer: true }).select(bjTempBeerSelect).populate('brewery');
+        const tempBeers = await Beer.find({ tempBeer: true }).select(bjTempBeerSelect).populate('brewery', '', Brewery);
         if (!tempBeers) return res.status(404).send({ statusCode: -1, message: 'TempBeers not found' });
 
         res.status(200).send({ statusCode: 1, tempBeers });
@@ -77,7 +78,7 @@ router.get('/topBeers', async (req, res) => {
     try {
         const top = await Beer.find({ tempBeer: false, averageRating: { $gt: 4 } })
             .select(bjBeerSelect)
-            .populate('brewery');
+            .populate('brewery', '', Brewery);
         if (!top) return res.status(404).send({ statusCode: -2, message: 'Error finding top beers' });
 
         for (let i = top.length - 1; i > 0; i--) {
@@ -94,13 +95,14 @@ router.get('/topBeers', async (req, res) => {
 // Retrieve all beers & breweries
 router.get('/allBeers', async (req, res) => {
     try {
-        const beers = await Beer.find({ tempBeer: false }).select(bjBeerSelect).populate('brewery');
+        console.log('getting...');
+        const beers = await Beer.find({ tempBeer: false }).select(bjBeerSelect).populate('brewery', '', Brewery);
         const breweries = await Brewery.find().select(bjBrewerySelect);
-        const reviews = await Review.find().select(bjReviewSelect).populate('reviewer');
+        const reviews = await Review.find().select(bjReviewSelect).populate('reviewer', '', bjUser);
 
         const top = await Beer.find({ tempBeer: false, averageRating: { $gt: 4 } })
             .select(bjBeerSelect)
-            .populate('brewery');
+            .populate('brewery', '', Brewery);
 
         for (let i = top.length - 1; i > 0; i--) {
             let j = Math.floor(Math.random() * (i + 1));

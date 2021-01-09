@@ -12,9 +12,7 @@ let User;
 const router = express.Router();
 
 router.use(function (req, res, next) {
-    console.log('req.url :>> ', req.url);
-    console.log('req.hostname :>> ', req.hostname);
-    User = bjUser;
+    User = req.hostname == 'localhost' ? bjUser : null;
     next();
 });
 
