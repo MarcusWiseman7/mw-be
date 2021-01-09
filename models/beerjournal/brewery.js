@@ -6,6 +6,7 @@ const brewerySchema = new mongoose.Schema(
         name: { type: String, required: true, trim: true },
         type: { type: String, trim: true },
         logo: { type: String, trim: true },
+        logoId: { type: String, trim: true },
         location: { type: String, trim: true },
         description: { type: String, trim: true },
         sumOfAllBeerRatings: { type: Number, default: 0 },
@@ -15,6 +16,7 @@ const brewerySchema = new mongoose.Schema(
     { usePushEach: true }
 );
 
-const Brewery = mongoose.model('Brewery', brewerySchema);
+const bjDB = mongoose.connection.useDb('BJ');
+const Brewery = bjDB.model('Brewery', brewerySchema);
 
 module.exports = { Brewery };

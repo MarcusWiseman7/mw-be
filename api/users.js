@@ -2,11 +2,21 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 
 const { ObjectId } = require('mongodb');
-const { userSelect } = require('../utils/variables');
+const { userSelect } = require('../utils/vars');
 const { mongoose } = require('../db/mongoose');
-const { User } = require('../models/user');
+
+const { bjUser } = require('../models/beerjournal/user');
+
+let User;
 
 const router = express.Router();
+
+router.use(function (req, res, next) {
+    console.log('req.url :>> ', req.url);
+    console.log('req.hostname :>> ', req.hostname);
+    User = bjUser;
+    next();
+});
 
 router.get('/allUsers', async (req, res) => {
     try {

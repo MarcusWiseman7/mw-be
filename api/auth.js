@@ -2,18 +2,27 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const { userSelect } = require('../utils/variables');
+const { userSelect } = require('../utils/bjVars');
 const { mongoose } = require('../db/mongoose');
-const { User } = require('../models/user');
+
+const { bjUser } = require('../models/beerjournal/user');
+
+let User;
 
 const router = express.Router();
 
-// Login
+router.use(function (req, res, next) {
+    console.log('req.url :>> ', req.url);
+    console.log('req.hostname :>> ', req.hostname);
+    User = bjUser;
+    next();
+});
+
 router.post('/login', async (req, res) => {
     try {
         const email = req.body.email;
-        const secret = process.env.LOGIN_SECRET || 'Its i.p.a. not ipa';
-        const exp = process.env.LOGIN_EXP || '1d';
+        const secret = process.env.LOGIN_SECRET;
+        const exp = process.env.LOGIN_EXP;
 
         const user = await User.findOne({ email });
         if (!user) return res.status(404).send({ statusCode: -1, message: 'No user found with this email' });
@@ -37,7 +46,6 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Logout
 router.post('/logout', async (req, res) => {
     try {
         if (req.body.id) {
@@ -55,7 +63,6 @@ router.post('/logout', async (req, res) => {
     }
 });
 
-// Get user
 router.get('/user', async (req, res) => {
     try {
         const user = await User.findOne({ loginToken: req.headers.authorization.substring(7) }, userSelect);

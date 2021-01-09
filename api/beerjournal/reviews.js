@@ -4,7 +4,7 @@ const { userSelect } = require('../../utils/variables');
 const { mongoose } = require('../../db/mongoose');
 const { Review } = require('../../models/beerjournal/review');
 const { Beer } = require('../../models/beerjournal/beer');
-const { User } = require('../../models/user');
+const { User } = require('../../models/beerjournal/user');
 
 const router = express.Router();
 
@@ -83,15 +83,15 @@ router.delete('/:id/:userId', async (req, res) => {
         )
             .select(userSelect)
             .populate(populateParams);
-        if (!user) return res.status(404).send();
+        if (!user) return res.status(404).send({ statusCode: -1, message: 'User not found by id' });
 
         // Delete review
         const review = await Review.findOneAndRemove({ _id: reviewId });
-        if (!review) return res.status(404).send();
+        if (!review) return res.status(404).send({ statusCode: -1, message: 'Review not found by id' });
 
         // Update beer
         const beer = await Beer.findOne({ _id: review.beer }).populate({ path: 'brewery' });
-        if (!beer) return res.status(404).send();
+        if (!beer) return res.status(404).send({ statusCode: -1, message: 'Beer not found by id' });
 
         beer.sumOfAllRatings = +beer.sumOfAllRatings - +review.rating;
         beer.totalNumberOfRatings = +beer.totalNumberOfRatings - 1;
@@ -102,7 +102,7 @@ router.delete('/:id/:userId', async (req, res) => {
         }
 
         await beer.save((err) => {
-            if (err) return res.status(400).send(err);
+            if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving beer' });
         });
 
         // Remove pic from cloudinary
@@ -110,7 +110,7 @@ router.delete('/:id/:userId', async (req, res) => {
             await cloud.deletePic(review.picId);
         }
 
-        res.status(200).send({ user, beer });
+        res.status(200).send({ statusCode: 1, message: 'Review deleted', user, beer });
     } catch (err) {
         return res.status(400).send({ statusCode: -1, catchError: err });
     }

@@ -10,6 +10,7 @@ const beerSchema = new mongoose.Schema(
         abv: { type: Number },
         bi: { type: Number },
         logo: { type: String, trim: true },
+        logoId: { type: String, trim: true },
         description: { type: String, trim: true },
         tempBeer: { type: Boolean, default: true },
         tempBrewery: { type: Boolean, default: false },
@@ -25,6 +26,7 @@ const beerSchema = new mongoose.Schema(
     { usePushEach: true }
 );
 
-const Beer = mongoose.model('Beer', beerSchema);
+const bjDB = mongoose.connection.useDb('BJ');
+const Beer = bjDB.model('Beer', beerSchema);
 
 module.exports = { Beer };

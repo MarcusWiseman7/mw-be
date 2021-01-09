@@ -7,17 +7,14 @@ const cors = require('cors');
 const users = require('./api/users');
 const auth = require('./api/auth');
 
+// BeerJournal vars
 const bjBeers = require('./api/beerjournal/beers');
 const bjBreweries = require('./api/beerjournal/breweries');
 const bjReviews = require('./api/beerjournal/reviews');
 
 const app = express();
 
-// let envPath = './appsEnv/.env-beerjournal';
-
-// require('dotenv').config({ path: envPath });
-
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
 
 // App middleware
 app.use(compression());
@@ -38,7 +35,7 @@ app.use('/beerjournal/reviews', bjReviews);
 // Listen the server
 app.listen(PORT, () => {
     consola.ready({
-        message: `Server listening on PORT ${PORT}, DB is ${process.env.MONGO_URL_EXT}`,
+        message: `Server listening on PORT ${PORT}`,
         badge: true,
     });
 });
