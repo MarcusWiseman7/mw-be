@@ -13,7 +13,7 @@ const reviewSchema = new mongoose.Schema(
         date: { type: Date },
         dateCreated: { type: Date, default: Date.now },
         beer: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Beer' },
-        reviewer: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
+        reviewer: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'bjUser' },
     },
     { usePushEach: true }
 );

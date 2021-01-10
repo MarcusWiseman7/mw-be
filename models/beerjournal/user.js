@@ -8,6 +8,7 @@ const UserSchema = new Schema(
         email: { type: String, trim: true, unique: true },
         altEmails: [{ type: String, trim: true, unique: true }],
         displayName: { type: String, trim: true, unique: true },
+        name: { type: String, trim: true },
         avatarURL: { type: String, trim: true },
         avatarId: { type: String, trim: true },
         reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],

@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 
 const { mongoose } = require('../../db/mongoose');
 const { bjBeerSelect, bjTempBeerSelect, bjReviewSelect, bjBrewerySelect } = require('../../utils/bjVars');
+const { userSelect } = require('../../utils/vars');
 const { Beer } = require('../../models/beerjournal/beer');
 const { Brewery } = require('../../models/beerjournal/brewery');
 const { Review } = require('../../models/beerjournal/review');
@@ -65,7 +66,9 @@ router.post('/', async (req, res) => {
 // Retrieve temp beers
 router.get('/tempBeers', async (req, res) => {
     try {
-        const tempBeers = await Beer.find({ tempBeer: true }).select(bjTempBeerSelect).populate('brewery', '', Brewery);
+        const tempBeers = await Beer.find({ tempBeer: true })
+            .select(bjTempBeerSelect)
+            .populate({ path: 'brewery', model: Brewery, select: bjBrewerySelect });
         if (!tempBeers) return res.status(404).send({ statusCode: -1, message: 'TempBeers not found' });
 
         res.status(200).send({ statusCode: 1, tempBeers });
@@ -78,7 +81,7 @@ router.get('/topBeers', async (req, res) => {
     try {
         const top = await Beer.find({ tempBeer: false, averageRating: { $gt: 4 } })
             .select(bjBeerSelect)
-            .populate('brewery', '', Brewery);
+            .populate({ path: 'brewery', model: Brewery, select: bjBrewerySelect });
         if (!top) return res.status(404).send({ statusCode: -2, message: 'Error finding top beers' });
 
         for (let i = top.length - 1; i > 0; i--) {
@@ -95,25 +98,29 @@ router.get('/topBeers', async (req, res) => {
 // Retrieve all beers & breweries
 router.get('/allBeers', async (req, res) => {
     try {
-        console.log('getting...');
-        const beers = await Beer.find({ tempBeer: false }).select(bjBeerSelect).populate('brewery', '', Brewery);
+        const beers = await Beer.find({ tempBeer: false })
+            .select(bjBeerSelect)
+            .populate({ path: 'brewery', model: Brewery, select: bjBrewerySelect });
         const breweries = await Brewery.find().select(bjBrewerySelect);
-        const reviews = await Review.find().select(bjReviewSelect).populate('reviewer', '', bjUser);
+        const reviews = await Review.find()
+            .select(bjReviewSelect)
+            .populate({ path: 'reviewer', model: bjUser, select: userSelect });
 
         const top = await Beer.find({ tempBeer: false, averageRating: { $gt: 4 } })
             .select(bjBeerSelect)
-            .populate('brewery', '', Brewery);
+            .populate({ path: 'brewery', model: Brewery, select: bjBrewerySelect });
 
         for (let i = top.length - 1; i > 0; i--) {
             let j = Math.floor(Math.random() * (i + 1));
             [top[i], top[j]] = [top[j], top[i]];
         }
 
-        if (!beers || !breweries || !top) {
+        if (!beers || !breweries || !top || !reviews) {
             let err = '';
-            if (!beers) err += 'beers';
-            if (!breweries) err += 'breweries';
-            if (!top) err += 'top';
+            if (!beers) err += ' beers';
+            if (!breweries) err += ' breweries';
+            if (!top) err += ' top';
+            if (!reviews) err += ' reviews';
             return res.status(404).send({ statusCode: -2, message: `DB find error: no ${err}` });
         }
 

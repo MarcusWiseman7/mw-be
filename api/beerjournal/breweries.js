@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
 });
 
 // Retrieve brewery
-router.get('/:id', async (req, res) => {
+router.get('/getBrewery/:id', async (req, res) => {
     try {
         const brewery = await Brewery.findOne({ _id: req.params.id }).select(bjBrewerySelect);
         if (!brewery) return res.status(404).send({ statusCode: -1, message: 'Brewery not found by id' });

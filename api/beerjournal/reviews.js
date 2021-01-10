@@ -1,6 +1,7 @@
 const express = require('express');
 
 const { userSelect } = require('../../utils/vars');
+const { bjBeerSelect, bjTempBeerSelect, bjReviewSelect, bjBrewerySelect } = require('../../utils/bjVars');
 const { mongoose } = require('../../db/mongoose');
 const { Review } = require('../../models/beerjournal/review');
 const { Beer } = require('../../models/beerjournal/beer');
@@ -11,9 +12,13 @@ const router = express.Router();
 
 const populateParams = {
     path: 'reviews',
+    model: Review,
+    select: bjReviewSelect,
     populate: {
         path: 'beer',
-        populate: { path: 'brewery' },
+        model: Beer,
+        select: bjBeerSelect,
+        populate: { path: 'brewery', model: Brewery, select: bjBrewerySelect },
     },
 };
 
@@ -30,7 +35,11 @@ router.post('/addReview', async (req, res) => {
             if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving review' });
         });
 
-        const beer = await Beer.findOne({ _id: review.beer }).populate({ path: 'brewery' }, '', Brewery);
+        const beer = await Beer.findOne({ _id: review.beer }).populate({
+            path: 'brewery',
+            model: Brewery,
+            select: bjBrewerySelect,
+        });
         if (!beer) return res.status(404).send({ statusCode: -1, message: 'Beer not found by id' });
 
         beer.sumOfAllRatings = +beer.sumOfAllRatings + +review.rating;
@@ -61,6 +70,7 @@ router.get('/:beerId', async (req, res) => {
     try {
         const reviews = await Review.find({ beer: req.params.beerId }).populate({
             path: 'reviewer',
+            model: Review,
             select: userSelect,
         });
         if (!reviews) return res.status(404).send({ statusCode: -1, message: 'Reviews not found by beer id' });
@@ -91,7 +101,11 @@ router.delete('/:id/:userId', async (req, res) => {
         if (!review) return res.status(404).send({ statusCode: -1, message: 'Review not found by id' });
 
         // Update beer
-        const beer = await Beer.findOne({ _id: review.beer }).populate({ path: 'brewery' }, '', Brewery);
+        const beer = await Beer.findOne({ _id: review.beer }).populate({
+            path: 'brewery',
+            model: Brewery,
+            select: bjBrewerySelect,
+        });
         if (!beer) return res.status(404).send({ statusCode: -1, message: 'Beer not found by id' });
 
         beer.sumOfAllRatings = +beer.sumOfAllRatings - +review.rating;
