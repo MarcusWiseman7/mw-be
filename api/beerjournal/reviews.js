@@ -1,7 +1,7 @@
 const express = require('express');
 
 const { userSelect } = require('../../utils/vars');
-const { bjBeerSelect, bjTempBeerSelect, bjReviewSelect, bjBrewerySelect } = require('../../utils/bjVars');
+const { bjBeerSelect, bjReviewSelect, bjBrewerySelect, averageRound } = require('../../utils/bjVars');
 const { mongoose } = require('../../db/mongoose');
 const { Review } = require('../../models/beerjournal/review');
 const { Beer } = require('../../models/beerjournal/beer');
@@ -22,11 +22,6 @@ const populateParams = {
     },
 };
 
-const averageRound = (a, b, c) => {
-    const x = Math.pow(10, c || 0);
-    return Math.round((a / b) * x) / x;
-};
-
 // Create new review
 router.post('/addReview', async (req, res) => {
     try {
@@ -45,6 +40,7 @@ router.post('/addReview', async (req, res) => {
         beer.sumOfAllRatings = +beer.sumOfAllRatings + +review.rating;
         beer.totalNumberOfRatings = +beer.totalNumberOfRatings + 1;
         beer.averageRating = averageRound(+beer.sumOfAllRatings, +beer.totalNumberOfRatings, 1);
+        console.log('beer.averageRating :>> ', beer.averageRating);
 
         await beer.save((err) => {
             if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving beer' });

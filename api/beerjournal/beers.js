@@ -18,7 +18,7 @@ const smtpTransport = nodemailer.createTransport({
 });
 
 // Create new beer
-router.post('/', async (req, res) => {
+router.post('/newBeer', async (req, res) => {
     try {
         const payload = JSON.parse(JSON.stringify(req.body));
         let newBrewery;
@@ -63,7 +63,24 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Retrieve temp beers
+router.get('/singleBeer/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const beer = await Beer.findOne({ _id: id })
+            .select(bjBeerSelect)
+            .populate({ path: 'brewery', model: Brewery, select: bjBrewerySelect });
+        if (!beer) return res.status(404).send({ statusCode: -1, message: 'Beer not found' });
+
+        const reviews = await Review.find({ beer: id })
+            .select(bjReviewSelect)
+            .populate({ path: 'reviewer', model: bjUser, select: userSelect });
+
+        res.status(200).send({ statusCode: 1, beer, reviews });
+    } catch (err) {
+        return res.status(400).send({ statusCode: -1, catchError: err });
+    }
+});
+
 router.get('/tempBeers', async (req, res) => {
     try {
         const tempBeers = await Beer.find({ tempBeer: true })
@@ -89,7 +106,14 @@ router.get('/topBeers', async (req, res) => {
             [top[i], top[j]] = [top[j], top[i]];
         }
 
-        res.status(200).send({ statusCode: 1, topBeers: top.slice(0, 6) });
+        const topBeers = top.slice(0, 6);
+        const topIds = topBeers.map((x) => x._id);
+
+        const reviews = await Review.find({ beer: topIds })
+            .select(bjReviewSelect)
+            .populate({ path: 'reviewer', model: bjUser, select: userSelect });
+
+        res.status(200).send({ statusCode: 1, topBeers, reviews });
     } catch (err) {
         return res.status(400).send({ statusCode: -1, catchError: err });
     }
