@@ -63,6 +63,27 @@ router.post('/newBeer', async (req, res) => {
     }
 });
 
+router.get('/search/:q', async (req, res) => {
+    try {
+        const q = req.params.q;
+        const beers = await Beer.find({ beerName: { $regex: q, $options: 'i' } })
+            .select(bjBeerSelect)
+            .populate({ path: 'brewery', model: Brewery, select: bjBrewerySelect });
+        const breweries = await Brewery.find({ name: { $regex: q, $options: 'i' } }).select(bjBrewerySelect);
+
+        let results = beers.concat(breweries).sort(function (a, b) {
+            let x = a.name || a.beerName;
+            let y = b.name || b.beerName;
+
+            return x.toLowerCase().localeCompare(y.toLowerCase());
+        });
+
+        res.status(200).send({ statusCode: 1, results });
+    } catch (err) {
+        return res.status(400).send({ statusCode: -1, catchError: err });
+    }
+});
+
 router.get('/singleBeer/:id', async (req, res) => {
     try {
         const id = req.params.id;
