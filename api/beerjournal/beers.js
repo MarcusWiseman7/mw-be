@@ -18,7 +18,7 @@ const smtpTransport = nodemailer.createTransport({
 });
 
 // Create new beer
-router.post('/newBeer', async (req, res) => {
+router.post('/addNewBeer', async (req, res) => {
     try {
         const payload = JSON.parse(JSON.stringify(req.body));
         let newBrewery;
@@ -42,7 +42,7 @@ router.post('/newBeer', async (req, res) => {
             payload.brewery = checkBrewery._id;
         }
 
-        const beer = await new Beer(payload);
+        const beer = await new Beer(payload).select(bjBeerSelect);
         await beer.save((err) => {
             if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving beer' });
         });
