@@ -1,7 +1,7 @@
 {
-    "name": "mw-be",
+    "name": "mdw-be",
     "version": "1.0.0",
-    "description": "",
+    "description": "Universal backend for Marcus Wiseman projects",
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
@@ -9,7 +9,7 @@
         "start": "cross-env NODE_ENV=production node -r dotenv/config server.js"
     },
     "keywords": [],
-    "author": "",
+    "author": "Marcus Wiseman",
     "license": "ISC",
     "dependencies": {
         "bcryptjs": "^2.4.3",

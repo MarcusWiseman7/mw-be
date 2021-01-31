@@ -3,10 +3,10 @@ const express = require('express');
 const { userSelect } = require('../../utils/vars');
 const { bjBeerSelect, bjReviewSelect, bjBrewerySelect, averageRound } = require('../../utils/bjVars');
 const { mongoose } = require('../../db/mongoose');
-const { Review } = require('../../models/beerjournal/review');
-const { Beer } = require('../../models/beerjournal/beer');
-const { User } = require('../../models/beerjournal/user');
-const { Brewery } = require('../../models/beerjournal/brewery');
+const { Review } = require('../../models/brewfoam/review');
+const { Beer } = require('../../models/brewfoam/beer');
+const { User } = require('../../models/brewfoam/user');
+const { Brewery } = require('../../models/brewfoam/brewery');
 
 const router = express.Router();
 

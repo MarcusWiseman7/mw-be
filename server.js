@@ -7,10 +7,10 @@ const cors = require('cors');
 const users = require('./api/users');
 const auth = require('./api/auth');
 
-// BeerJournal vars
-const bjBeers = require('./api/beerjournal/beers');
-const bjBreweries = require('./api/beerjournal/breweries');
-const bjReviews = require('./api/beerjournal/reviews');
+// brewfoam vars
+const bjBeers = require('./api/brewfoam/beers');
+const bjBreweries = require('./api/brewfoam/breweries');
+const bjReviews = require('./api/brewfoam/reviews');
 
 const app = express();
 
@@ -27,10 +27,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/users', users);
 app.use('/auth', auth);
 
-// Beerjournal routes
-app.use('/beerjournal/beers', bjBeers);
-app.use('/beerjournal/breweries', bjBreweries);
-app.use('/beerjournal/reviews', bjReviews);
+// brewfoam routes
+app.use('/brewfoam/beers', bjBeers);
+app.use('/brewfoam/breweries', bjBreweries);
+app.use('/brewfoam/reviews', bjReviews);
 
 // Listen the server
 app.listen(PORT, () => {

@@ -1,10 +1,10 @@
 const express = require('express');
 
 const { mongoose } = require('../../db/mongoose');
-const { Beer } = require('../../models/beerjournal/beer');
-const { Brewery } = require('../../models/beerjournal/brewery');
-const { Review } = require('../../models/beerjournal/review');
-const { bjUser } = require('../../models/beerjournal/user');
+const { Beer } = require('../../models/brewfoam/beer');
+const { Brewery } = require('../../models/brewfoam/brewery');
+const { Review } = require('../../models/brewfoam/review');
+const { bjUser } = require('../../models/brewfoam/user');
 const { userSelect } = require('../../utils/vars');
 const { bjBrewerySelect, bjBeerSelect, bjReviewSelect, averageRound } = require('../../utils/bjVars');
 

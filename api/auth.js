@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const { userSelect } = require('../utils/bjVars');
 const { mongoose } = require('../db/mongoose');
 
-const { bjUser } = require('../models/beerjournal/user');
+const { bjUser } = require('../models/brewfoam/user');
 
 let User;
 

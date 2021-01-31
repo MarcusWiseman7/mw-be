@@ -5,7 +5,7 @@ const { ObjectId } = require('mongodb');
 const { userSelect } = require('../utils/vars');
 const { mongoose } = require('../db/mongoose');
 
-const { bjUser } = require('../models/beerjournal/user');
+const { bjUser } = require('../models/brewfoam/user');
 
 let User;
 

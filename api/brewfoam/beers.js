@@ -4,10 +4,10 @@ const nodemailer = require('nodemailer');
 const { mongoose } = require('../../db/mongoose');
 const { bjBeerSelect, bjTempBeerSelect, bjReviewSelect, bjBrewerySelect } = require('../../utils/bjVars');
 const { userSelect } = require('../../utils/vars');
-const { Beer } = require('../../models/beerjournal/beer');
-const { Brewery } = require('../../models/beerjournal/brewery');
-const { Review } = require('../../models/beerjournal/review');
-const { bjUser } = require('../../models/beerjournal/user');
+const { Beer } = require('../../models/brewfoam/beer');
+const { Brewery } = require('../../models/brewfoam/brewery');
+const { Review } = require('../../models/brewfoam/review');
+const { bjUser } = require('../../models/brewfoam/user');
 
 const router = express.Router();
 
