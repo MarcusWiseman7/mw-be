@@ -18,7 +18,7 @@ const reviewSchema = new mongoose.Schema(
     { usePushEach: true }
 );
 
-const bjDB = mongoose.connection.useDb('BJ');
+const bjDB = mongoose.connection.useDb('BrewFoam');
 const Review = bjDB.model('Review', reviewSchema);
 
 module.exports = { Review };

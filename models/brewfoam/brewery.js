@@ -16,7 +16,7 @@ const brewerySchema = new mongoose.Schema(
     { usePushEach: true }
 );
 
-const bjDB = mongoose.connection.useDb('BJ');
+const bjDB = mongoose.connection.useDb('BrewFoam');
 const Brewery = bjDB.model('Brewery', brewerySchema);
 
 module.exports = { Brewery };

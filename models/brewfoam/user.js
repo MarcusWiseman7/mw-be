@@ -38,7 +38,7 @@ UserSchema.pre('save', function (next) {
     }
 });
 
-const bjDB = mongoose.connection.useDb('BJ');
+const bjDB = mongoose.connection.useDb('BrewFoam');
 const bjUser = bjDB.model('User', UserSchema);
 
 module.exports = { bjUser };
