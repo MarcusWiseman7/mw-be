@@ -43,17 +43,18 @@ router.patch('/updateBreweryRating/:id', async (req, res) => {
         const id = req.params.id;
         const brewery = await Brewery.findOne({ _id: id }).select(bjBrewerySelect);
         if (!brewery) return res.status(404).send({ statusCode: -1, message: 'Brewery not found by id' });
-        console.log('brewery :>> ', brewery);
 
         const beers = await Beer.find({ brewery: id })
             .select(bjBeerSelect)
             .populate({ path: 'brewery', model: Brewery, select: bjBrewerySelect });
         if (!beers) return res.status(404).send({ statusCode: -1, message: 'Beers not found by brewery id' });
-        console.log('beers :>> ', beers);
 
         const rates = beers.map((x) => x.averageRating).filter((x) => x != 0);
+        console.log('rates :>> ', rates);
         const total = rates.reduce((acc, x) => acc + x);
+        console.log('total :>> ', total);
         const averageRating = averageRound(total, rates.length, 1);
+        console.log('averageRating :>> ', averageRating);
 
         brewery.sumOfAllBeerRatings = total;
         brewery.totalNumberOfBeerRatings = rates.length;
