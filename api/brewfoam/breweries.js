@@ -40,44 +40,81 @@ router.get('/getBrewery/:id', async (req, res) => {
 
 router.patch('/updateBreweryRating/:id', async (req, res) => {
     try {
-        const id = req.params.id;
-        const brewery = await Brewery.findOne({ _id: id }).select(bjBrewerySelect);
-        if (!brewery) return res.status(404).send({ statusCode: -1, message: 'Brewery not found by id' });
+        const beers = await Beer.find();
+        const breweries = await Brewery.find();
 
-        const beers = await Beer.find({ brewery: id })
-            .select(bjBeerSelect)
-            .populate({ path: 'brewery', model: Brewery, select: bjBrewerySelect });
-        if (!beers) return res.status(404).send({ statusCode: -1, message: 'Beers not found by brewery id' });
+        await beers.forEach(async (beer) => {
+            let reviews = await Review.find({ beer: beer._id });
+            let allRatings = reviews.map((o) => o.rating).filter((j) => j != 0);
+            let total = allRatings.reduce((acc, x) => acc + x);
+            let aveRating = averageRound(total, allRatings.length, 1);
 
-        const rates = beers.map((x) => x.averageRating).filter((x) => x != 0);
-        console.log('rates :>> ', rates);
-        const total = rates.reduce((acc, x) => acc + x);
-        console.log('total :>> ', total);
-        const averageRating = averageRound(total, rates.length, 1);
-        console.log('averageRating :>> ', averageRating);
+            beer.sumOfAllRatings = total;
+            beer.totalNumberOfRatings = allRatings.length;
+            beer.averageRating = aveRating;
 
-        brewery.sumOfAllBeerRatings = total;
-        brewery.totalNumberOfBeerRatings = rates.length;
-        brewery.averageBeerRating = averageRating;
-
-        brewery.save((err) => {
-            if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving brewery' });
+            await beer.save((err) => {
+                if (err)
+                    return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving beer' });
+            });
         });
 
-        console.log('brewery after save :>> ', brewery);
+        await breweries.forEach(async (brewery) => {
+            let thisBreweyBeers = beers.filter((b) => b.brewery == brewery._id);
+            let breweryRatings = thisBreweyBeers.map((y) => y.averageRating).filter((z) => z != 0);
+            let rateTotal = breweryRatings.reduce((acc, x) => acc + x);
+            let aveBrewRating = averageRound(rateTotal, breweryRatings.length, 1);
 
-        const topIds = beers.map((x) => x._id);
-        console.log('topIds :>> ', topIds);
+            brewery.sumOfAllBeerRatings = rateTotal;
+            brewery.totalNumberOfBeerRatings = breweryRatings.length;
+            brewery.averageBeerRating = aveBrewRating;
 
-        const reviews = await Review.find({ beer: topIds })
-            .select(bjReviewSelect)
-            .populate({ path: 'reviewer', model: bjUser, select: userSelect });
+            await brewery.save((err) => {
+                if (err)
+                    return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving brewery' });
+            });
+        });
 
-        res.status(200).send({ statusCode: 1, brewery, beers, reviews });
+        res.status(200).send({ statusCode: 1, beers, breweries });
     } catch (err) {
         return res.status(400).send({ statusCode: -1, catchError: err });
     }
 });
+
+// router.patch('/updateBreweryRating/:id', async (req, res) => {
+//     try {
+//         const id = req.params.id;
+//         const brewery = await Brewery.findOne({ _id: id }).select(bjBrewerySelect);
+//         if (!brewery) return res.status(404).send({ statusCode: -1, message: 'Brewery not found by id' });
+
+//         const beers = await Beer.find({ brewery: id })
+//             .select(bjBeerSelect)
+//             .populate({ path: 'brewery', model: Brewery, select: bjBrewerySelect });
+//         if (!beers) return res.status(404).send({ statusCode: -1, message: 'Beers not found by brewery id' });
+
+//         const rates = beers.map((x) => x.averageRating).filter((x) => x != 0);
+//         const total = rates.reduce((acc, x) => acc + x);
+//         const averageRating = averageRound(total, rates.length, 1);
+
+//         brewery.sumOfAllBeerRatings = total;
+//         brewery.totalNumberOfBeerRatings = rates.length;
+//         brewery.averageBeerRating = averageRating;
+
+//         await brewery.save((err) => {
+//             if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving brewery' });
+//         });
+
+//         const topIds = beers.map((x) => x._id);
+
+//         const reviews = await Review.find({ beer: topIds })
+//             .select(bjReviewSelect)
+//             .populate({ path: 'reviewer', model: bjUser, select: userSelect });
+
+//         res.status(200).send({ statusCode: 1, brewery, beers, reviews });
+//     } catch (err) {
+//         return res.status(400).send({ statusCode: -1, catchError: err });
+//     }
+// });
 
 // Update brewery
 router.patch('/:id', async (req, res) => {
