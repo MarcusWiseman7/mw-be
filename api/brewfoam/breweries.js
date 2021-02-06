@@ -40,41 +40,48 @@ router.get('/getBrewery/:id', async (req, res) => {
 
 router.patch('/updateBreweryRating/:id', async (req, res) => {
     try {
+        const beers = await Beer.find();
         const breweries = await Brewery.find();
 
-        // await beers.forEach(async (beer) => {
-        //     let reviews = await Review.find({ beer: beer._id });
-        //     let allRatings = reviews.map((o) => o.rating).filter((j) => j != 0);
-        //     let total = allRatings.reduce((acc, x) => acc + x);
-        //     let aveRating = averageRound(total, allRatings.length, 1);
+        await beers.forEach(async (beer) => {
+            let reviews = await Review.find({ beer: beer._id });
+            let allRatings = reviews.map((o) => o.rating).filter((j) => j != 0);
+            if (allRatings && allRatings.length) {
+                let total = allRatings.reduce((acc, x) => acc + x);
+                let aveRating = averageRound(total, allRatings.length, 1);
 
-        //     beer.sumOfAllRatings = total;
-        //     beer.totalNumberOfRatings = allRatings.length;
-        //     beer.averageRating = aveRating;
+                beer.sumOfAllRatings = total;
+                beer.totalNumberOfRatings = allRatings.length;
+                beer.averageRating = aveRating;
 
-        //     await beer.save((err) => {
-        //         if (err)
-        //             return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving beer' });
-        //     });
-        // });
+                await beer.save((err) => {
+                    if (err)
+                        return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving beer' });
+                });
+            }
+        });
 
         await breweries.forEach(async (brewery) => {
             const beers = await Beer.find({ brewery: brewery._id });
             const rates = beers.map((x) => x.averageRating).filter((x) => x != 0);
-            const total = rates.reduce((acc, x) => acc + x);
-            const averageRating = averageRound(total, rates.length, 1);
+            if (rates && rates.length) {
+                const total = rates.reduce((acc, x) => acc + x);
+                const averageRating = averageRound(total, rates.length, 1);
 
-            brewery.sumOfAllBeerRatings = total;
-            brewery.totalNumberOfBeerRatings = rates.length;
-            brewery.averageBeerRating = averageRating;
+                brewery.sumOfAllBeerRatings = total;
+                brewery.totalNumberOfBeerRatings = rates.length;
+                brewery.averageBeerRating = averageRating;
 
-            await brewery.save((err) => {
-                if (err)
-                    return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving brewery' });
-            });
+                await brewery.save((err) => {
+                    if (err)
+                        return res
+                            .status(400)
+                            .send({ statusCode: -1, dbSaveError: err, message: 'Error saving brewery' });
+                });
+            }
         });
 
-        res.status(200).send({ statusCode: 1, breweries });
+        res.status(200).send({ statusCode: 1 });
     } catch (err) {
         return res.status(400).send({ statusCode: -1, catchError: err });
     }
