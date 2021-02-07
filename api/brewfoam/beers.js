@@ -25,7 +25,9 @@ router.post('/addNewBeer', async (req, res) => {
 
         const checkBrewery = await Brewery.findOne({ name: payload.brewery });
         if (!checkBrewery) {
-            newBrewery = await new Brewery({ name: payload.brewery });
+            newBrewery = await new Brewery({ name: payload.brewery, tempBrewery: true });
+            newBrewery.altName = newBrewery.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
             await newBrewery.save((err) => {
                 if (err)
                     return res
@@ -37,12 +39,13 @@ router.post('/addNewBeer', async (req, res) => {
         } else {
             const checkBeer = await Beer.findOne({ beerName: payload.beerName, brewery: checkBrewery._id });
             if (checkBeer)
-                return res.status(200).send({ statusCode: 1, beer: checkBeer, message: 'Beer already exists' });
+                return res.status(200).send({ statusCode: 2, beer: checkBeer, message: 'Beer already exists' });
 
             payload.brewery = checkBrewery._id;
         }
 
-        const beer = await new Beer(payload).select(bjBeerSelect);
+        payload.altName = payload.beerName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const beer = await new Beer(payload);
         await beer.save((err) => {
             if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving beer' });
         });
@@ -63,13 +66,50 @@ router.post('/addNewBeer', async (req, res) => {
     }
 });
 
+router.patch('/normalizeNames', async (req, res) => {
+    try {
+        const beers = await Beer.find();
+        const breweries = await Brewery.find();
+
+        await beers.forEach(async (beer) => {
+            beer.altName = beer.beerName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            await beer.save((err) => {
+                if (err)
+                    return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving beer' });
+            });
+        });
+
+        await breweries.forEach(async (brewery) => {
+            brewery.altName = brewery.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            await brewery.save((err) => {
+                if (err)
+                    return res.status(400).send({ statusCode: -1, dbSaveError: err, message: 'Error saving brewery' });
+            });
+        });
+
+        res.status(200).send({ statusCode: 1 });
+    } catch (err) {
+        return res.status(400).send({ statusCode: -1, catchError: err });
+    }
+});
+
 router.get('/search/:q', async (req, res) => {
     try {
         const q = req.params.q;
-        const beers = await Beer.find({ beerName: { $regex: q, $options: 'i' } })
+        const beers = await Beer.find({
+            $and: [
+                { tempBrewery: false },
+                { $or: [{ beerName: { $regex: q, $options: 'i' } }, { altName: { $regex: q, $options: 'i' } }] },
+            ],
+        })
             .select(bjBeerSelect)
             .populate({ path: 'brewery', model: Brewery, select: bjBrewerySelect });
-        const breweries = await Brewery.find({ name: { $regex: q, $options: 'i' } }).select(bjBrewerySelect);
+        const breweries = await Brewery.find({
+            $and: [
+                { tempBrewery: false },
+                { $or: [{ name: { $regex: q, $options: 'i' } }, { altName: { $regex: q, $options: 'i' } }] },
+            ],
+        }).select(bjBrewerySelect);
 
         let results = beers.concat(breweries).sort(function (a, b) {
             let x = a.name || a.beerName;

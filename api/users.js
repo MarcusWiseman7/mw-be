@@ -53,6 +53,17 @@ router.post('/addNewUser', async (req, res) => {
     }
 });
 
+router.post('/forgotPassword', async (req, res) => {
+    try {
+        const email = req.body.email;
+        const user = await bjUser.findOne({ email }).select(userSelect);
+
+        res.status(200).send({ statusCode: 1 });
+    } catch (err) {
+        res.status(400).send({ statusCode: -1, catchError: err });
+    }
+});
+
 router.delete('/deleteUser/:id', async (req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);
