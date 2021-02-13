@@ -96,6 +96,8 @@ router.patch('/normalizeNames', async (req, res) => {
 router.patch('/updateDB', async (req, res) => {
     try {
         const breweries = await Brewery.find();
+        const users = await bjUser.find();
+
         breweries.forEach(async (brewery) => {
             if (!brewery.hasOwnProperty('tempBrewery')) {
                 brewery.tempBrewery = false;
@@ -107,6 +109,14 @@ router.patch('/updateDB', async (req, res) => {
                             .send({ statusCode: -1, dbSaveError: err, message: 'Error saving brewery' });
                 });
             }
+        });
+
+        users.forEach(async (user) => {
+            user.loginToken = '';
+
+            await user.save((err) => {
+                if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err });
+            });
         });
 
         res.status(200).send({ statusCode: 1 });

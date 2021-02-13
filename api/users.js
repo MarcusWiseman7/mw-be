@@ -65,6 +65,7 @@ router.post('/forgotPassword', async (req, res) => {
     try {
         const token = crypto.randomBytes(20).toString('hex');
         const email = req.body.email;
+        const baseURL = req.body.baseURL;
         const user = await User.findOne({ email });
         if (!user) return res.status(404).send({ statusCode: -1, message: 'No user found with that email' });
 
@@ -83,7 +84,7 @@ router.post('/forgotPassword', async (req, res) => {
                 `Hello ${user.displayName || user.name}, \n\n` +
                 'You are receiving this email because you have requested to reset your BrewFoam password.\n\n' +
                 'Please click on the following link, or paste it into your browser to complete the process:\n\n' +
-                `https://${req.headers.host}/reset/${token} \n\n` +
+                `${baseURL}/reset/${token} \n\n` +
                 'If you did not request this, please ignore this email and your password will remain unchanged.\n\n' +
                 'Best regards, \n\n' +
                 'BrewFoam support team',
