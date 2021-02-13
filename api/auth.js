@@ -21,8 +21,6 @@ router.post('/login', async (req, res) => {
         const email = req.body.email;
         const secret = process.env.LOGIN_SECRET;
         const exp = process.env.LOGIN_EXP;
-        console.log('secret :>> ', secret);
-        console.log('exp :>> ', exp);
 
         const user = await User.findOne({ email });
         if (!user) return res.status(404).send({ statusCode: -1, message: 'No user found with this email' });
