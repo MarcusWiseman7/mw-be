@@ -21,10 +21,11 @@ router.post('/login', async (req, res) => {
         const email = req.body.email;
         const secret = process.env.LOGIN_SECRET;
         const exp = process.env.LOGIN_EXP;
+        console.log('secret :>> ', secret);
+        console.log('exp :>> ', exp);
 
         const user = await User.findOne({ email });
         if (!user) return res.status(404).send({ statusCode: -1, message: 'No user found with this email' });
-        console.log('user1 :>> ', user);
 
         if (!bcrypt.compareSync(req.body.password, user.password)) {
             return res.status(401).send({ statusCode: -1, message: 'Password does not match' });
@@ -33,14 +34,12 @@ router.post('/login', async (req, res) => {
         const token = jwt.sign({ email, date: new Date() }, secret, {
             expiresIn: exp,
         });
-        console.log('token :>> ', token);
 
         user.loginToken = token;
-        console.log('user2 :>> ', user);
         await user.save((err) => {
             if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err });
         });
-        console.log('user3 :>> ', user);
+
         res.status(200).json({ token });
     } catch (err) {
         return res.status(400).send({ statusCode: -1, catchError: err });
