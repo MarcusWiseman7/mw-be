@@ -1,5 +1,7 @@
+const crypto = require('crypto');
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 
 const { ObjectId } = require('mongodb');
 const { userSelect } = require('../utils/vars');
@@ -14,6 +16,12 @@ const router = express.Router();
 router.use(function (req, res, next) {
     User = req.hostname == 'localhost' ? bjUser : null;
     next();
+});
+
+// Nodemailer transport
+const smtpTransport = nodemailer.createTransport({
+    host: 'smtp.office365.com',
+    auth: { user: 'no-reply.beerjournal@outlook.com', pass: process.env.BJ_EMAIL_PASS },
 });
 
 router.get('/allUsers', async (req, res) => {
@@ -55,8 +63,40 @@ router.post('/addNewUser', async (req, res) => {
 
 router.post('/forgotPassword', async (req, res) => {
     try {
+        const token = crypto.randomBytes(20).toString('hex');
         const email = req.body.email;
-        const user = await bjUser.findOne({ email }).select(userSelect);
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).send({ statusCode: -1, message: 'No user found with that email' });
+
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = Date.now() + 3600000;
+
+        await user.save((err) => {
+            if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err });
+        });
+
+        const mailOptions = {
+            to: email,
+            from: 'Password Reset <no-reply.beerjournal@outlook.com>',
+            subject: 'BrewFoam Password Reset',
+            text:
+                `Hello ${user.displayName || user.name}, \n\n` +
+                'You are receiving this email because you have requested to reset your BrewFoam password.\n\n' +
+                'Please click on the following link, or paste it into your browser to complete the process:\n\n' +
+                `https://${req.headers.host}/reset/${token} \n\n` +
+                'If you did not request this, please ignore this email and your password will remain unchanged.\n\n' +
+                'Best regards, \n\n' +
+                'BrewFoam support team',
+        };
+
+        smtpTransport.sendMail(mailOptions, (err) => {
+            if (err)
+                return res.status(412).send({
+                    statusCode: -1,
+                    smtpTransportError: err,
+                    message: 'Error sending reset password token to email',
+                });
+        });
 
         res.status(200).send({ statusCode: 1 });
     } catch (err) {
@@ -69,6 +109,29 @@ router.delete('/deleteUser/:id', async (req, res) => {
         const user = await User.findByIdAndDelete(req.params.id);
         if (!user) return res.status(404).send({ statusCode: -1, message: 'User not found' });
         res.status(200).send({ statusCode: 1, message: 'User has been deleted' });
+    } catch (err) {
+        res.status(400).send({ statusCode: -1, catchError: err });
+    }
+});
+
+router.patch('/resetPassword', async (req, res) => {
+    try {
+        const token = req.body.token;
+        const password = req.body.password;
+        const resetToken = crypto.randomBytes(20).toString('hex');
+
+        const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
+        if (!user) return res.status(404).send({ statusCode: -1, message: 'No user found with that email' });
+
+        user.password = password;
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now();
+
+        await user.save((err) => {
+            if (err) return res.status(400).send({ statusCode: -1, dbSaveError: err });
+        });
+
+        res.status(200).send({ statusCode: 1, email: user.email });
     } catch (err) {
         res.status(400).send({ statusCode: -1, catchError: err });
     }
