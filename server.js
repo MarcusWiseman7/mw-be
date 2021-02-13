@@ -1,6 +1,7 @@
 const express = require('express');
 const consola = require('consola');
 const compression = require('compression');
+const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const cors = require('cors');
 
@@ -20,6 +21,7 @@ const PORT = process.env.PORT;
 app.use(compression());
 app.use(helmet());
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
